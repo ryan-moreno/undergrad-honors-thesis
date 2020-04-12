@@ -135,7 +135,7 @@
 \newcommand{\DeanTitle}[1]{\gdef\@DeanTitle{#1}}
 
 % The name of the honors dean
-\newcommand{\HonorsDean}[1]{\gdef\@HonorsDean{#1}}
+\newcommand{\HonorsAdvisor}[1]{\gdef\@HonorsAdvisor{#1}}
 
 % Set default values for fields
   \Year{1905}
@@ -160,9 +160,9 @@
   \MemberCTitle{Ph.D.}
   \DepRep{Department Chair Name}
   \DepRepTitle{Chair}
-  \Dean{Dean Name}
+  \Dean{Dr. Yannis Yortsos}
   \DeanTitle{Associate Dean}
-  \HonorsDean{Honors Dean Name}
+  \HonorsAdvisor{Dr. Andrea Armani}
   \UgradCoord{Department Ugrad Coordinator }
 
 % ---------------------------- options ------------------------------
@@ -485,18 +485,18 @@
     by\\[\baselineskip]
     \@Author
     \vfill
-    Submitted to Washington State University in partial fulfillment\\[\baselineskip]
-    of graduation requirements for University Honors\\[2\baselineskip]
-    School of Electrical Engineering and Computer Science\\[\baselineskip]
+    Submitted to the University of Southern California in partial fulfillment\\[\baselineskip]
+    of graduation requirements for departmental honors\\[2\baselineskip]
+    Viterbi School of Engineering, Computer Science\\[\baselineskip]
     \@Month~\@Year
     \vfill
     \end{center}
     \parbox[t]{2.75in}{
-        Advisor: \@Advisor \\[.5\baselineskip]
+        Research Advisor: \@Advisor \\[.5\baselineskip]
         Signature: \hrulefill}
     \hfill
     \parbox[t]{2.75in}{
-        Honors Dean: \@HonorsDean \\[.5\baselineskip]
+        Honors Advisor: \@HonorsAdvisor \\[.5\baselineskip]
         Signature: \hrulefill}
     \clearemptydoublepage
   }
@@ -575,18 +575,18 @@ of \MakeUppercase{\@Author} find it satisfactory and recommend that it be accept
     \begin{center}
     \providecommand\pdfbookmark[3][]{} \pdfbookmark[0]{Department Approval}{bm:DepAp}
     \vspace*{0.375in}
-    WASHINGTON STATE UNIVERSITY\\[3\baselineskip]
-    DEPARTMENT APPROVAL\\[5\baselineskip]
+    UNIVERSITY OF SOUTHERN CALIFORNIA\\[3\baselineskip]
+    DEPARTMENTAL APPROVAL\\[5\baselineskip]
     of a \@docname~submitted by\\[\baselineskip]
     \@Author\\[2\baselineskip]
     \end{center}
     \noindent
     This thesis has been reviewed by the research advisor,
-    research coordinator, and department chair and has been
+    engineering honors advisor, and department chair and has been
     found to be satisfactory.\\[\baselineskip]
-    \datebox\hfill\signaturebox{\@Advisor, Advisor}\\
-    \datebox\hfill\signaturebox{\@UgradCoord, Research Coordinator}\\
-    \datebox\hfill\signaturebox{\@DepRep, \@DepRepTitle}\\
+    \datebox\hfill\signaturebox{\@Advisor, Research Advisor}\\
+    \datebox\hfill\signaturebox{\@HonorsAdvisor, Honors Advisor}\\
+    \datebox\hfill\signaturebox{\@Dean, \@DeanTitle}\\
     \vfill
     \clearemptydoublepage
   }
