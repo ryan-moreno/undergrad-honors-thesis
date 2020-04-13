@@ -1,9 +1,11 @@
 % Modify this file to complete your dissertation
 \ProvidesPackage{preamble}
 
+\usepackage{booktabs}
 \usepackage{dsfont}
 \usepackage{amsmath}
 \usepackage{ifpdf}
+\usepackage{array}
 
 \ifpdf
   \usepackage[pdftex]{graphicx}
@@ -131,3 +133,8 @@ Mauris dictum pharetra fermentum. Maecenas ut felis varius, dapibus sapien imper
 
 % Shortcuts
 \newcommand{\figref}[1]{Figure \ref{#1}}
+
+% fancy columns for tables [allow text to wrap and justification]
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}

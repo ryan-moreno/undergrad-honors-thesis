@@ -19,8 +19,6 @@ Motivate with only unseen/one or more seen
 
 \subsection{Experiments}
 
-
-
 \section{Entity Masking}
 TODO:
 -- motivation is considering context
@@ -34,6 +32,38 @@ TODO: see if triggerNER does significantly better on masked  data??
 \subsection{Proposed Framework}
 
 \subsection{Experiments}
+
+
+
+\subsection{Results}
+
+\begin{table}[t]
+    \centering
+    \begin{singlespace}
+    \begin{tabular}{@{} R{0.17\textwidth} c c c c @{}}
+\toprule   \toprule
+        & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Augmented dev data}} 
+        & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Change from original dev data}}
+        & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Augmented test data}}
+        & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Change from original test data}} \\ \toprule
+        
+        \textbf{Original data} &&&&                       \\\midrule
+            \textit{Precision}  & 95.92 & - & 92.28 & -   \\ 
+            \textit{Recall}     & 95.66 & - & 92.12 & -   \\ 
+            \textit{F1}         & 95.79 & - & 92.20 & -   \\\bottomrule
+        
+        \textbf{All ents fully masked} &&&&                        \\\midrule
+            \textit{Precision}  & 62.69 & -33.23 & 63.74 & -28.54   \\ 
+            \textit{Recall}     & 60.23 & -35.43 & 60.11 & -32.01   \\ 
+            \textit{F1}         & 61.44 & -34.35 & 61.87 & -30.33   \\\bottomrule
+        \hline
+    \end{tabular}
+    \end{singlespace}
+    \caption{Results from making predictions on adversarial data using biLSTM and neural CRF trained on the original CoNLL03 dataset}
+    \label{tab:adverdata}
+\end{table} %TODO: put in rest of data
+
+
 
 
 
