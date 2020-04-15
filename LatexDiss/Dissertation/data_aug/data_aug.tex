@@ -36,7 +36,13 @@ TODO: see if triggerNER does significantly better on masked  data??
 
 
 \subsection{Results}
-
+% Thought I could use this for calculations in the table, but couldn't get it to work
+\ADD{0}{95.92}\origdevprec
+\ADD{0}{95.66}\origdevrecall
+\ADD{0}{95.79}\origdevf
+\ADD{0}{92.28}\origtestprec
+\ADD{0}{92.12}\origtestrecall
+\ADD{0}{92.20}\origtestf
 \begin{table}[t]
     \centering
     \begin{singlespace}
@@ -46,20 +52,107 @@ TODO: see if triggerNER does significantly better on masked  data??
         & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Change from original dev data}}
         & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Augmented test data}}
         & \multicolumn{1}{C{0.17\textwidth}}{\textbf{Change from original test data}} \\ \toprule
-        
+
+
         \textbf{Original data} &&&&                       \\\midrule
-            \textit{Precision}  & 95.92 & - & 92.28 & -   \\ 
-            \textit{Recall}     & 95.66 & - & 92.12 & -   \\ 
-            \textit{F1}         & 95.79 & - & 92.20 & -   \\\bottomrule
+            \textit{Precision}  & \origdevprec & - & \origtestprec & -   \\ 
+            \textit{Recall}     & \origdevrecall & - & \origtestrecall & -   \\ 
+            \textit{F1}         & \origdevf & - & \origtestf & -   \\\bottomrule
+            
+        \textbf{One or more seen ents} &&&&     \\\midrule
+            \textit{Precision}  & 97.38 & +1.46 & 94.67 & +2.39   \\ 
+            \textit{Recall}     & 97.27 & +1.61 & 94.62 & +2.50   \\ 
+            \textit{F1}         & 97.32 & +1.53 & 94.65 & +2.45   \\\bottomrule
+
+        \textbf{Only unseen ents} &&&&      \\\midrule
+            \textit{Precision}  & 92.66 & -3.26 & 90.07 & -2.21   \\ 
+            \textit{Recall}     & 91.70 & -3.96 & 88.18 & -3.94   \\ 
+            \textit{F1}         & 92.18 & -3.61 & 89.12 & -3.08   \\\bottomrule
         
-        \textbf{All ents fully masked} &&&&                        \\\midrule
+        \textbf{All ents fully masked} &&&&          \\\midrule
             \textit{Precision}  & 62.69 & -33.23 & 63.74 & -28.54   \\ 
             \textit{Recall}     & 60.23 & -35.43 & 60.11 & -32.01   \\ 
             \textit{F1}         & 61.44 & -34.35 & 61.87 & -30.33   \\\bottomrule
+            
+        \textbf{All ents half masked} &&&&               \\\midrule
+            \textit{Precision}  & 67.30 & -28.62 & 67.39 & -24.89   \\ 
+            \textit{Recall}     & 65.28 & -30.38 & 64.50 & -27.62   \\ 
+            \textit{F1}         & 66.27 & -29.52 & 65.91 & -26.29   \\\bottomrule
+        
+        \textbf{All ents masked retaining vowels/consonants} &&&&     \\\midrule
+            \textit{Precision}  & 65.18 & -30.74 & 64.36 & -27.92   \\ 
+            \textit{Recall}     & 63.04 & -32.62 & 62.00 & -30.12   \\ 
+            \textit{F1}         & 64.09 & -31.70 & 63.16 & -29.04   \\\bottomrule
+            
+        \textbf{One ent half masked} &&&&                        \\\midrule
+            \textit{Precision}  & 89.22 & -6.70 & 86.81 & -5.47   \\ 
+            \textit{Recall}     & 88.36 & -7.30 & 85.48 & -6.64   \\ 
+            \textit{F1}         & 88.79 & -7.00 & 86.14 & -6.06   \\\bottomrule
+            
+        \textbf{Remove influential non-entity adjectives (AllenNLP)} &&&&                        \\\midrule
+            \textit{Precision}  & 96.23 & +0.31 & 93.53 & +1.07   \\ 
+            \textit{Recall}     & 95.91 & +0.25 & 93.72 & +1.60   \\ 
+            \textit{F1}         & 96.07 & +0.28 & 93.63 & +1.43   \\\bottomrule
+            
+        \textbf{Insert adjectives before influential nouns (AllenNLP)} &&&&                        \\\midrule
+            \textit{Precision}  & 95.81 & -0.11 & 93.10 & +0.82   \\ 
+            \textit{Recall}     & 95.93 & +0.27 & 93.49 & +1.37   \\ 
+            \textit{F1}         & 95.87 & +0.08 & 93.29 & +1.09   \\\bottomrule
+            
+        \textbf{Replace influential non-entities with synonyms (AllenNLP)} &&&&     \\\midrule
+            \textit{Precision}  & 96.28 & +0.36 & 93.46 & +1.18   \\ 
+            \textit{Recall}     & 95.86 & +0.20 & 93.34 & +1.22   \\ 
+            \textit{F1}         & 96.07 & +0.28 & 93.40 & +1.20   \\\bottomrule
+            
+        \textbf{One ent fully masked} &&&&                        \\\midrule
+            \textit{Precision}  & 88.36 & -7.56 & 85.94 & -6.34   \\ 
+            \textit{Recall}     & 87.10 & -8.56 & 84.40 & -7.72   \\ 
+            \textit{F1}         & 87.73 & -8.06 & 85.16 & -7.04   \\\bottomrule
+            
+        \textbf{One ent masked retaining vowels/consonants} &&&&    \\\midrule
+            \textit{Precision}  & 88.53 & -7.39 & 86.07 & -6.21   \\ 
+            \textit{Recall}     & 87.36 & -8.30 & 84.79 & -7.33   \\ 
+            \textit{F1}         & 87.94 & -7.85 & 85.42 & -6.78   \\\bottomrule
+            
+        \textbf{Switched entities of the same type} &&&&    \\\midrule
+            \textit{Precision}  & 95.22 & -0.70 & 92.24 & -0.04   \\ 
+            \textit{Recall}     & 94.72 & -0.94 & 91.58 & -0.54   \\ 
+            \textit{F1}         & 94.97 & -0.82 & 91.91 & -0.29   \\\bottomrule
+
+        \textbf{Replace random non-entities with antonyms} &&&&   \\\midrule
+            \textit{Precision}  & 94.72 & -1.20 & 91.23 & -1.05   \\ 
+            \textit{Recall}     & 94.22 & -1.44 & 90.57 & -1.55   \\ 
+            \textit{F1}         & 94.47 & -1.32 & 90.90 & -1.30   \\\bottomrule
+            
+        \textbf{Replace random non-entities with synonyms} &&&&     \\\midrule
+            \textit{Precision}  & 94.69 & -1.23 & 91.69 & -0.59   \\ 
+            \textit{Recall}     & 94.01 & -1.65 & 90.82 & -1.30   \\ 
+            \textit{F1}         & 94.35 & -1.44 & 91.25 & -0.95   \\\bottomrule
+
+        \textbf{Remove adjectives before entities} &&&&       \\\midrule
+            \textit{Precision}  & 98.51 & +2.59 & 87.50 & -4.78   \\ 
+            \textit{Recall}     & 95.65 & -0.01 & 87.50 & -4.62   \\ 
+            \textit{F1}         & 97.06 & +1.27 & 87.50 & -4.70   \\\bottomrule % TODO curious why dev went up and test down
+            % TODO: remove before entities?
+        \textbf{Remove adjectives before random non-entities} &&&&     \\\midrule
+            \textit{Precision}  & 94.95 & -0.97 & 91.99 & -0.29   \\ 
+            \textit{Recall}     & 94.48 & -1.18 & 91.56 & -0.56   \\ 
+            \textit{F1}         & 94.71 & -1.08 & 91.77 & -0.43   \\\bottomrule
+            % TODO remove before entities?
+        \textbf{Insert adjectives before entities} &&&&        \\\midrule
+            \textit{Precision}  & 94.64 & -1.28 & 89.71 & -2.57   \\ 
+            \textit{Recall}     & 91.38 & -4.28 & 98.39 & +6.27   \\ 
+            \textit{F1}         & 92.98 & -2.81 & 93.85 & +1.65   \\\bottomrule
+            
+        \textbf{Insert adjectives before random non-entities} &&&&       \\\midrule
+            \textit{Precision}  & 94.57 & -1.35 & 91.46 & -0.82   \\ 
+            \textit{Recall}     & 94.71 & -0.95 & 91.12 & -1.00   \\ 
+            \textit{F1}         & 94.64 & -1.15 & 91.29 & -0.91   \\\bottomrule
+
         \hline
     \end{tabular}
     \end{singlespace}
-    \caption{Results from making predictions on adversarial data using biLSTM and neural CRF trained on the original CoNLL03 dataset}
+    \caption{Results from making predictions on adversarial data using a BLSTM-CRF model~\citep{DBLP:conf/acl/MaH16} trained on the original CoNLL03~\citep{conll} dataset.}
     \label{tab:adverdata}
 \end{table} %TODO: put in rest of data
 
