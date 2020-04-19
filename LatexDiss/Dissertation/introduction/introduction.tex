@@ -5,16 +5,106 @@
 % 2) What is the significance of your particular topic?
 \section{Named Entity Recognition (NER)}
 \subsection{Task Definition}
-Named entity recognition (NER) is a fundamental information extraction task that attempts to extract entities from a given text and classify them using pre-defined categories (e.g. persons, locations, or organizations) \citep{2007Survey}.
+Named entity recognition (NER) is a fundamental information extraction task that attempts to extract entities from a given text and classify them using pre-defined categories (e.g. persons, locations, or organizations) \citep{2007Survey}. 
 
-\subsection{State-of-the-Art Frameworks}
-Early NER models used hard-coded rules that specified the steps for extracting named entities \citep{NeuralNERSurvey}. Because of their dependence on pre-defined rules, these models were not robust. The next generation of models began to employ machine learning (notably, not deep learning) \citep{NeuralNERSurvey}. Although an improvement from rule-based approaches, feature engineering still requires researchers to pre-define which features are important to their NER model. Examples of such features include which words are capitalized in the sentence, the part of speech of each word, and the frequency of each word within the entire corpus \citep{2007Survey}.
+Modern approaches to NER use machine learning, using a set of human-annotated, labeled sentences to train a model to classify new sentences. The main dataset I use in this thesis is CoNLL-2003 ~\citep{conll}. This dataset uses a Beginning-Inside-Outside (BIO) format, meaning that each word is classified as either \textsc{B-TYPE} -- the beginning of a named entity of type \textsc{TYPE}, \textsc{I-TYPE} -- any word in a named entity that is not the beginning, or \textsc{O} -- a non-entity. Separating \textsc{B-TYPE} and \textsc{I-TYPE} helps to distinguish entity boundaries. An example of a labeled sentence appears in Fig~\ref{fig:labeledsent}.
 
-Deep learning using neural networks offers an improvement on these previous approaches by abstracting away the definition of rules and features. Neural Networks attempt to model the power of the brain by representing neurons as linear threshold functions that act on a small piece of the input data. By connecting these neurons together, neural networks can represent non-linear functions that act on the entirety of the input data to produce an output prediction. Neural networks learn their non-linear function by repeatedly making predictions on the training data, verifying their predictions, and adjusting the weights of the neurons accordingly. In this way, neural networks learn to make predictions without hand-crafted rules or features; they simply need to be given a large set of training data with the correct outputs labeled. Since 2011, state-of-the-art NER models have employed neural networks, which outperform previous rule-based and feature-based approaches even without any access to external resources and domain-specific knowledge \citep{NeuralNERSurvey}.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/labeledsent.pdf} %TODO: create this graphic
+	\caption{Example of a human-annotated sentence demonstrating the BIO format.}
+	\label{fig:labeledsent}
+\end{figure}
 
-The framework that we work with
-Our Framework:
-TODO: FEATURE ENG AND ELMO + GLoVE [read abt ELMO] and BiLSTM and attention contrastive loss and classification loss, CRF, CNN
+In the standard setup, human-annotators are asked to annotate a collection of sentences, which are split into a training, dev, and test set. The CoNLL-2003 dataset is made up of 14,987 training sentences, 3,466 dev sentences, and 3,684 test sentences ~\citep{conll}. The modern approach to NER is using neural models. Sec~\ref{sec:neuralNER} briefly explains the training process of a neural network. During training, the neural NER model has access to each sentence in the training set and its corresponding word labels. The dev set is also used during the training stage. However, the model doesn't directly train on the dev set, but rather uses the dev set to test the model's performance between each training stage. The model predicts labels for the sentences in the dev set, comparing its predictions to the human-annotated labels and adjusting its parameters accordingly. Finally, after the model is completely trained it makes predictions on the sentences in the test set. These predictions are compared to the human-annotated labels, producing an official evaluation of the trained model. The model's performance on the test set is expected to reflect the performance it would have on completely unlabeled sentences.
+
+NER models are evaluated using three different metrics: precision, recall, and an F1 score. Precision measures the rate of false positives by only considering the named entities that the model predicts. Precision is the percentage of the model's predictions that were correct~\citep{conll}. 
+{
+    {
+        \begin{align*} 
+            \operatorname{P} &= \frac{\operatorname{true positives}}{\operatorname{true positives} + \operatorname{false positives}}
+        \end{align*} 
+    }
+}
+Recall only considers the named entities in the dataset. Recall is the percentage of the named entities that the model predicted correctly~\citep{conll}. 
+{
+    {
+        \begin{align*} 
+            \operatorname{R} &= \frac{\operatorname{true positives}}{\operatorname{true positives} + \operatorname{false negatives}}
+        \end{align*} 
+    }
+}
+Precision and recall are depicted in Fig~\ref{fig:evaluationmetrics}. The F1 score is a combination of precision and recall that is more heavily influenced true negatives, false negatives, and false positives than true negatives \citep{NERevaluationmetrics}. As one can imagine, there should be many true negatives in a NER dataset since the majority of words are non-entities. Because the dataset is more weighted towards negative examples, the F1 score is more effective as an overall measure of the model's performance than a simple accuracy score (the percentage of the model's labels that are correct). The formal definition of the F1 score is as follows:
+{
+    {
+        \begin{align*} 
+            \operatorname{F1} &= {(\frac{\operatorname{precision}^{-1} + \operatorname{recall}^{-1}}{2})}^{-1}
+        \end{align*} 
+    }
+}
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/evaluationmetrics.pdf}
+	\caption{A visual depiction of precision and recall. Figure from~\citep{NERevaluationmetrics}.}
+	\label{fig:evaluationmetrics}
+\end{figure}
+
+%TODO: do we use strict matching? what about our handling of multiple classes?
+
+
+\subsection{Neural NER Frameworks}
+\label{sec:neuralNER}
+Early NER models used hard-coded rules that specified the steps for extracting named entities \citep{NeuralNERSurvey}. Because of their dependence on pre-defined rules, these models were not robust. The next generation of models began to employ machine learning (notably, not deep learning) \citep{NeuralNERSurvey}. Although an improvement from rule-based approaches, handcrafted feature engineering still requires researchers to pre-define which features are important to their NER model. Examples of such features include which words are capitalized in the sentence, the part of speech of each word, and the frequency of each word within the entire corpus \citep{2007Survey}.
+
+Deep learning using neural networks offers an improvement on these previous approaches by abstracting away the definition of rules and features. Neural Networks attempt to model the power of the brain by representing neurons as linear threshold functions that act on a small piece of the input data. By connecting these neurons together, with their weights as trainable parameters, neural networks can represent non-linear functions that act on input data to produce an output prediction. Neural networks learn their non-linear function by repeatedly making predictions on the training data, verifying their predictions, and adjusting the weights of the neurons accordingly. In this way, neural networks learn to make predictions without hand-crafted rules or features; they simply need to be given a large set of training data with the correct outputs labeled. Since 2011, state-of-the-art NER models have employed neural networks, which outperform previous rule-based and feature-based approaches even without any access to external resources and domain-specific knowledge \citep{NeuralNERSurvey}.
+
+\subsubsection{Our Framework}
+\label{sec:ourframework}
+The basic framework used in this thesis is the most common neural NER architecture, a BLSTM-CRF built on both word and character-level embeddings~\citep{DBLP:conf/acl/MaH16}. The overall structure of this framework is shown in in Fig ~\ref{fig:blstmcrf}. This framework is end-to-end differentiable, meaning that all of the parameters (in the word and character embeddings, the BLSTM, and the CRF) are trained towards the final NER performance.
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}[t]{0.5\textwidth}
+    	\centering
+    	\includegraphics[width=.95\linewidth]{LatexDiss/figures/blstmcrf.pdf}
+    	\caption{Overall architecture of neural NER network. Not pictured are the lookup table for word embeddings and the CNN resuling in character embeddings. Figure from ~\citep{DBLP:conf/acl/MaH16}.} %TODO: include self-attention
+    	\label{fig:blstmcrf}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.5\textwidth}
+    	\centering
+    	\includegraphics[width=.95\linewidth]{LatexDiss/figures/character-CNN.pdf}
+    	\caption{Creating character embeddings using a CNN. Figure from ~\citep{characterembeddings}.}
+    	\label{fig:CNN}
+    \end{minipage}
+\end{figure}
+
+%  TODO ELMO
+The first step in our framework is creating word and character embeddings. The purpose of word embeddings is represent the words semantically; an embedding is a vector representations of a word in a semantic vector space. This means that words that have a small distance from eachother in the vector space should have a similar meaning. We use lookup table to map each word in our corpus to their embedded vector. In order to speed up the training process, we pre-train the word embeddings using Stanford's publicly available GloVe embeddings ~\citep{Pennington2014GloveGV}. The GloVe embeddings were trained using 6 billion words from Wikipedia and other text on the internet. The meaningful substructure of the vector space is evidenced by increased performance using GloVe embeddings on a variety of natural language processing tasks, including NER and analogy tasks asking ``a is to b as c is to \_?''. By pre-training our word embedding network with GloVe embeddings, the lookup table starts with vectors in the meaningful vector space of the GloVe embeddings rather than starting with a random initialization.
+
+Concurrent with the creation of word embeddings is the creation of character embeddings. Although word embeddings are important for their semantic representation of a word, they leave out useful information regarding word morphology, the actual characters within a word. For example, if a word has the suffix ``ion,'' we can infer that it is probably a noun, while a word ending in ``ing'' is likely a verb. We follow the lead of \cite{characterembeddings}, who use a convolutional neural network (CNN) to create character embeddings, something that had previously been done via handcrafted feature engineering. As depicted in Fig~\ref{fig:CNN}, the characters themselves are passed into the CNN as vectors (representing if the character is a ``c'' or an ``H'' for example). These input vectors are then convolved, meaning that a matrix operation is performed over every window of $k$ neighboring vectors. Convolution is beneficial because characters are morphologically useful in the context of their neighboring characters. We then extract a single character embedding vector for the word using max pooling over the convolved vectors. 
+
+After creating the character and word embeddings, the two vectors are concatenated and fed into a bi-directional long-short term memory (BLSTM) neural network~\citep{DBLP:conf/acl/MaH16}. When making labeling predictions, a vanilla neural network would only have access to the word in question. Because they do not have access to an of the surrounding words, vanilla neural networks are unable to take advantage of contextual clues in the sentence. LSTMs provide access to previous words in the sentence inputting the previous words' LSTM outputs, proportionally ``forgetting'' the more distant words. In NER, it is useful to have access to both the past words and the future words in a sentence. Because of this, we use a bi-directional LSTM. As depicted in Fig~ref{fig:blstm-crf}, a BLSTM consists of a forward LSTM (which evaluates the sentence from left to right) and a backward LSTM (which evaluates the sentence from right to left). When evaluating a given word, the forward LSTM has access to the past context while the backwards LSTM has access to the future context. The outputs of the forward and backward LSTMs for a given word are concatenated to form the final output of the BLSTM for that word.
+
+Finally, we are ready to perform label prediction on our word.
+Although the BLSTM allows the model access to the sentence context of a word, if we directly used the BLSTM output to predict our labels, we would have to make each word's predictions individually. We prefer to jointly label the words because the labels of words in a sentence are highly correlated. For example, it is highly unlikely that a word tagged as an organization entity would be directly followed by person entity without any non-entity words in between. In order to jointly label the words of a sentence, we use a conditional random field (CRF) layer as our final network layer ~\citep{DBLP:conf/acl/MaH16}. Rather than choosing the highest probability label for an individual word, the CRF maximizes the log-likelihood of the sentence's entire sequence of labels. This can be done efficiently using the Viterbi algorithm ~\citep{ViterbiAlg}.
+
+Another concept that is important to our framework is attention. Attention allows a context vector to scale a word's hidden state vector, emphasizing some dimensions while demphasizing others. 
+Given an input word's hidden state $\vec{h_t}$ and word-level context vector $v^{T}$ as well as trainable parameters $\mathbf{W}$ and $\vec{b}$, the attention vector $\vec{\alpha_t}$ is computed as follows~\citep{understandingattention}.
+
+{
+    {
+        \begin{align*} 
+            \vec{u_t} &= \tanh (\mathbf{W} \vec{h_t} + \vec{b}) \\
+            \vec{\alpha_t}  &= \operatorname{SoftMax}(v^{T} \vec{u_t})
+        \end{align*} 
+    } % use equations from self-attention paper instead?  I think these are more straightforward.
+}
+
+Geometrically, $\mathbf{W}$ and $\vec{b}$ rotate and scale the  word's hidden state vector. Then, the $\tanh$ function then stretches components of the vector. The word-level context vector $v^{T}$ represents the relative importance of each dimension of the new vector $\vec{u_t}$. Taking the dot product of $v^{T}$ and $\vec{u_t}$ scales each component of $\vec{u_t}$ by its dimension's weight in $v^{T}$. Because $W$ and $\vec{b}$ are trainable parameters, the model learns how to manipulate the word's hidden state vector so that its dimensions are most effectively scaled by $v^{T}$. Finally, the $\operatorname{SoftMax}$ function turns the resulting attention vector into a probability distribution, normalizing each element.
+
+Attention is particularly useful when we want to incorporate external information because it can be included as the context vector (as we do in Sec~\ref{sec:secondstage}). However, attention can also be used in the absence of external information through self-attention. In self-attention, a word's hidden state vector is itself used as the context vector $v^{T} = h_t^{T}$~\citep{selfattentive}. The resulting attention vector focuses on a specific semantic component of a sentence (such as a set of related words). Because a sentence often has multiple important components, self-attention can be computed $k$ times with a different set of parameters for each, resulting in an attention matrix. % TODO: why does self-attention work intuitively?
 
 \section{Problem Statement}
 Neural NER models are powerful in settings in which an abundance of ground-truth training data is available \citep{LampleNER}. However, human annotation is expensive and time-consuming, especially in technical domains, such as biomedical publications, in which the human annotator must be able to understand and contextualize technical jargon. Unfortunately, neural NER model performance decreases significantly when training data is restricted \citep{TriggerNER}. Thus, a crucial research question is how we can most efficiently collect and use human-annotated ground-truth data. In this thesis, I investigate two potential solutions. First, I explore a novel way of collecting human-annotated data by gathering both ground-truth entity labels and \textit{entity triggers} -- the phrases which cue entities. This approach allows for state-of-the-art results using a smaller set of human annotations. Second, I explore automated methods to create additional training data without any additional human input.
@@ -29,7 +119,7 @@ Towards low-resource learning for NER,
 recent works have mainly focused on dictionary-based distantly supervision, using a dictionary of entities and an unannotated target domain corpus to generate weakly labeled data, data which we have less confidence in because it was not annotated by hand. This approach uses exact character matchings of words in the unannotated corpus with entities in the entity dictionary, regarding the hard-matched sentences as additional, weakly labeled data for learning a NER model. 
 ~\cite{autoner} and ~\cite{yangner} follow this approach, employing Partial CRFs to tentatively assign unlabeled words all possible labels, choosing one that maximizes the total probability. One drawback is that they rely on a domain-specific seed dictionary. 
 ~\cite{weakcrf} uses Wikipedia anchors, assumed to be named entities, as their entity dictionary. Using the Wikipedia anchors, they automatically construct weakly labeled data, splitting them into high-quality and noisy data. Then, they train a classification module, which regards name tagging as a multi-label classification problem. This module uses noisy data first and fine-tunes with high-quality data. After pre-training this classification module, they share the overall neural network with the sequence labeling module. Then, they use a sequence labeling module to infer the named entity. This paper does not rely on a domain-specific seed dictionary, but it relies on Wikipedia. One drawback is that their weak labeling method doesn't consider the context of a sentence.
-~\cite{opencorrection} similarly constructs weakly labeled data from Wikipedia and DBpedia. Using a small amount of human annotated data, they implement a semi-supervised correction model with curriculum learning to correct the false-negative entity labels in the weakly labeled data. Finally, they use the corrected data to train a neural NER model. They show the effectiveness of curriculum learning using weakly labeled data, but it can only be applied to general NER tasks such as CONLL and ONTONOTES. It cannot be applied to domain-specific tasks.
+~\cite{opencorrection} similarly constructs weakly labeled data from Wikipedia and DBpedia. Using a small amount of human annotated data, they implement a semi-supervised correction model with curriculum learning to correct the false-negative entity labels in the weakly labeled data. Finally, they use the corrected data to train a neural NER model. They show the effectiveness of curriculum learning using weakly labeled data, but it can only be applied to general NER tasks such as CONLL. It cannot be applied to domain-specific tasks such as medical text.
 
 Although the dictionary-based approaches largely reduce human efforts in annotating, the quality of matched sentences is highly dependent on the coverage of the dictionary and the quality of the corpus.
 The learned models tend to have a bias towards entities with similar surface forms as the ones in dictionary. Without further tuning under better supervision, these models have low recall.
@@ -46,17 +136,29 @@ The unique challenge in NER is that we have to deal with rules which are discont
 
 
 
-\subsection{Automated Data Generation}
+\subsection{Data Augmentation}
 \subsubsection{Adversarial Data}
 An adversarial example for a neural network is an example that is created by perturbing a correctly classified example and causes the model to misclassify the  adversarial example. Adversarial examples are easily understood within the image domain, where a slight rearrangement in the pixels of an image results in a new image that is almost indistinguishable to a human (and thus would be classified the same as the original image). A classic example in pop-science is slightly rotating an image of a tabby cat that one of Google's image classifying networks was over 80\% confident was a cat, resulting in the network being over 90\% confident that the same image is a bowl of guacamole \citep{guacamole}. Adversarial examples in the natural language domain are slightly more complicated because rearranging words or characters in a sentence doesn't always result in a sentence that is syntactically valid, let alone semantically similar to the original sentence. I explore several ways to perturb sentences such that the original entity labels remain valid.
 
 Adversarial examples are useful in part because they demonstrate the limits of state-of-the-art NER models. By creating adversarial data to effectively trick a NER model, we develop a better idea of the model's brittleness, which can guide future research directions for making the model more robust.
 
 \subsubsection{Data Augmentation}
-Another use of adversarial examples, the use that I focus on in this thesis, is data augmentation. By developing scripts to create adversarial examples, I've effectively developed scripts to take a set of labeled data and produce more, slightly different, labeled data. I hypothesize that since the adversarial examples of our test data are able to trick our NER models, the adversarial examples must have implicit knowledge that the NER model currently lacks, knowledge which could improve the NER model if it was embedded into the training data. With this in mind, I use the same scripts for creating adversarial examples to augment the training data, creating more, slightly different, training data without any extra human annotation cost. My experiments show that augmenting the training data improves the NER models' robustness to adversarial attacks while retaining its effectiveness on the original test data sets. TODO
+Another use of adversarial examples, the use that I focus on in this thesis, is data augmentation. By developing scripts to create adversarial examples, I've effectively developed scripts to take a set of labeled data and produce additional, slightly different, labeled data. I hypothesize that since the adversarial examples of our test data are able to trick our NER models, the adversarial examples must have implicit knowledge that the NER model currently lacks, knowledge which could improve the NER model if it was embedded into the training data. With this in mind, I use the same scripts for creating adversarial examples to augment the training data, creating more, slightly different, training data without additional human annotation cost. My experiments show that augmenting the training data improves the NER models' robustness to adversarial attacks while retaining its effectiveness on the original test data sets. 
 
 
 \subsubsection{Related Works}
+TODO
+% %But given the paucity of data, it is diffi-
+% cult to draw conclusions about the robustness
+% of systems with respect to recognizing a di-
+% verse set of entities. We propose a method
+
+
+Adversarial examples for NER is a relatively untouched field. However, there are a few recent pieces in that direction. \cite{entityswitched} released a manuscript in April 2020 regarding entity-switched datasets for NER, although it has not yet been peer-reviewed. The idea is that NER models should be able to recognize named entities from a variety of national origins equally well. This follows recent research on fairness in machine learning\footnote{For example, language identification models are poor at recognizing African-American Vernacular English as English despite their high performance recognizing text as English when associated with white speakers~\citep{blodgett2016}}. To investigate NER model robustness across national origins, they switch out entities in the CoNLL-2003 dataset, replacing them with entities of a different national origin. They find that state-of-the-art models have significantly unequal performance across national origins, ranging from a recall of 99.6-99.7\% on US-based named entities to only 78.2-84.2\% on Vietnamese-based named entities. 
+
+\cite{interpretability} is another example of recent research in adversarial data. This manuscript was released in April 2020 and has not yet been peer-reviewed. They attempt to address the question of whether state-of-the-art NER models are learning the context of named entities or are merely memorizing the named entities in the training data. In order to investigate this question, they test the ability of state-of-the-art models to label words given only the context of the word. The models are asked to label sentences of the form ``\textit{Tom traveled to \_\_\_ last year.}'' A  sentence is created for each word in the CoNLL-2003 dataset, with that word blanked out. This context-only approach is similar to the data augmentation technique of entity masking that I explore, where I replace each entity with a random string of letters. \cite{interpretability} find that models have an F1 score of above 90\% given words and context, 50-60\% given context only, and 65-80\% given the single word only. This suggests that modern models rely more heavily on memorizing named entities than learning the context for named entities. Interestingly, human tests demonstrate that many of the mistakes that the models make during context-only labeling are also made by humans given the context-only sentence. For example, in the sentence \textit{``Their other marksmen were Brazilian defender Vampeta \_\_\_ Belgian striker Luc Nilis''} the actual blanked word is \textit{``and''}, so it should be labeled with the tag \textsc{O}. However, the models and human annotators alike labeled the word \textsc{PER}. This is relevant to my research because it suggests the possibility that some of my augmented sentences could be too difficult for human annotators. If this were the case, it would be unreasonable to expect models to correctly label these sentences.
+
+
 % SEARS:
 % Complex machine learning models for NLP are often brittle, making different predic- tions for input instances that are extremely similar semantically. To automatically de- tect this behavior for individual instances, we present semantically equivalent ad- versaries (SEAs) – semantic-preserving perturbations that induce changes in the model’s predictions. We generalize these adversaries into semantically equivalent adversarial rules (SEARs) – simple, uni- versal replacement rules that induce ad- versaries on many instances. We demon- strate the usefulness and flexibility of SEAs and SEARs by detecting bugs in black-box state-of-the-art models for three domains: machine comprehension, visual question- answering, and sentiment analysis. Via user studies, we demonstrate that we gener- ate high-quality local adversaries for more instances than humans, and that SEARs in- duce four times as many mistakes as the bugs discovered by human experts. SEARs are also actionable: retraining models us- ing data augmentation significantly reduces bugs, while maintaining accuracy.
 

@@ -4,7 +4,7 @@ This section is adapted from the research paper I co-authored titled ``Entity Tr
 
 
 \section{Motivation}
-%TODO: should I talk about our approach using weak labels first?
+%Should I talk about our approach using weak labels first? The weak labels didn't work bc don't know which word trigger refers to
 \label{sec:intro}
 Recent advances in NER have primarily focused on training neural network models with an abundance of human annotations, yielding state-of-the-art results \citep{LampleNER}. However, NER often requires huge amounts of labeled data (e.g. tens of thousands of labeled sentences). Collecting these human annotations is expensive and time-consuming, especially in technical domains such as biomedical publications, financial documents, legal reports, etc. As we seek to advance NER into more domains with less human effort, how to learn neural models for NER in a annotation-efficient way becomes a crucial research problem.
 
@@ -14,10 +14,8 @@ A human's recognition of an unlabeled entity usually depends on cue words or  ph
 
 \begin{figure}[h]
 	\centering
-% 	\hspace*{-.27in}
 	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/trigexample.pdf}
 	\caption{Example of entity triggers: \textit{``had(2) ... lunch(5) at(6)''} and \textit{``where(11) the(12) food(13)''} are two individual entity triggers associated to the entity mention {\underline{``Rumble Fish''}} typed as \texttt{REST}aurant, which starts at the 7th token.}
-% 	\vspace{-10pt}
 	\label{fig:trigex}
 \end{figure}
 
@@ -95,18 +93,14 @@ We then create a training instance by pairing each entity with one of its trigge
 The learning objective in this stage is to output the tag sequence $\mathbf{y}$. %TODO is this still the learning objective? Isn't the learning objective here the trigger classification loss and contrastive loss?
 
 
-For each reformed training instance $(\mathbf{x}, e, t)$, we first apply a bidirectional LSTM (BLSTM) 
-% TODO  add reference to intro section about BLSTM
-on the sequence of word vectors\footnote{Here, by ``word vectors'' we mean the concatenation of external GloVe~\citep{Pennington2014GloveGV} word embeddings and char-level word representations from a trainable CNN network~\citep{DBLP:conf/acl/MaH16}. } 
-%TODO read the trainable CNN paper
+For each reformed training instance $(\mathbf{x}, e, t)$, we first apply a bidirectional LSTM (BLSTM) on the sequence of word vectors\footnote{Here, by ``word vectors'' we mean the concatenation of external GloVe~\citep{Pennington2014GloveGV} word embeddings and char-level word representations from a trainable CNN network~\citep{DBLP:conf/acl/MaH16}.} 
 of $\mathbf{x}$, obtaining a sequence of hidden states that are the contextualized word representations $\mathbf{h}_i$ for each token $x_i$ in the sentence. 
 We use $\mathbf{H}$ to denote the matrix containing the hidden vectors of all of the tokens, and we use $\mathbf{Z}$ to denote the matrix containing the hidden vectors of all of the trigger tokens inside the trigger $t$.
 
-In order to learn an attention-based
-% TODO add reference to attention  section in intro
-representation of both triggers and sentences, we follow the self-attention method introduced by ~\citep{selfattentive} as follows:
+In order to learn a attention-based
+representation of both triggers and sentences, we follow the self-attention method introduced by ~\cite{selfattentive} and described in Sec~\ref{sec:ourframework} as follows:
 {
-{ % TODO  add explanation
+{
 		\begin{align*} 
 			\vec{a}_{sent}&=\operatorname{SoftMax}\left(W_{2} \tanh \left(W_{1} \mathbf{H}^{T}\right)\right)\\
 			\mathbf{g_s}&=\vec{a}_{sent}\mathbf{H}\\
@@ -115,22 +109,26 @@ representation of both triggers and sentences, we follow the self-attention meth
 		\end{align*} 
 	}
 }  
-$W_1$ and $W_2$ are two trainable parameters for computing self-attention score vectors $\vec{a}_{sent}$ and $\vec{a}_{trig}$, essentially the level of importance the self-attention layer has given to each token.
+Here, $W_1$ and $W_2$ are two trainable parameters for computing self-attention score vectors $\vec{a}_{sent}$ and $\vec{a}_{trig}$, essentially the level of importance the self-attention layer has given to each token.
 We obtain a vector representing the weighted sum of the token vectors in the entire sentence as the final sentence vector $\mathbf{g_s}$. Similarly, $\mathbf{g_t}$ is the final trigger vector, representing the weighted sum of the token vectors in the trigger.
 
 We want to use the type of the associated entity as supervision to guide the trigger representation.
-Thus, the trigger vector $\mathbf{g_t}$ is further fed into a multi-class classifier to predict the \textit{type} of the associated entity $e$ (such as \texttt{PER}, \texttt{LOC}, etc) which we use $\texttt{type}(e)$ to denote.
-The loss of the trigger classification is as follows, where $\theta_{TC}$ is the learning parameter:
+Thus, the trigger vector $\mathbf{g_t}$ is further fed into a multi-class classifier to predict the \textit{type} of the associated entity $e$ (such as \texttt{PER}, \texttt{LOC}, etc) which we use $\texttt{type}(e)$ to denote. Because our model is a multi-class classifier (selecting which label should be assigned to a given word), we use a cross-entropy loss function.  The loss is low if the model predicts a high probability for the correct label.
+The trigger classification loss is as follows, where $\theta_{TC}$ is the learning parameter:
 {
-	{
+	{  
 		\begin{align*} 
-		L_{TC}=-\sum \log \mathrm{P} \left(\texttt{type}(e)~|~ \mathbf{g_t}; \theta_{TC}\right) %  TODO define theta
+		L_{TC}=-\sum \log \mathrm{P} \left(\texttt{type}(e)~|~ \mathbf{g_t}; \theta_{TC}\right) 
 		\end{align*} 
 	}
 }  
-In order to learn to match triggers and sentences based on their attention-based representations, we use contrastive loss \citep{hadsell2006dimensionality}.
-The intuition is that a similar trigger and sentence should have similar representations (i.e. have a small distance betweeen them, $d$).
-We randomly mix the triggers and sentences so that we have negative examples (i.e. mismatches) because \texttt{TrigMatcher} needs to be trained with both positive and negative examples of the form (sentence, trigger, label). For the negative examples, we expect a margin $m$ between their representations. The contrastive loss of the soft matching his defined as follows, where $\mathds{1}_{\text{matched}}$ is $1$ if the trigger was originally in this sentence and $0$ if they are mismatched:
+In order to learn to match triggers and sentences based on their self-attention-based representations, we use contrastive loss \citep{hadsell2006dimensionality}. 
+Contrastive loss is a loss method for unlabeled data depending on both positive examples (a pair of vectors of the same class) and negative examples (a pair of vectors of different classes). The contrastive loss is low if the positive examples have a small distance between their two vectors and the negative examples have a large distance between their two vectors. This ensures that vectors of the same class are encoded near each other in the vector space.
+
+The intuition behind our use of contrastive loss is that a trigger and the sentence that the trigger belongs to should have similar representations (i.e. have a small distance betweeen them, $d$).
+\texttt{TrigMatcher} needs to be trained with both positive and negative examples of the form (sentence, trigger, label), so we randomly mix the triggers and sentences so that we have negative examples (i.e. mismatches). 
+For the negative examples, we expect a margin $m$ between their representations. 
+The contrastive loss of the soft matching is defined as follows, where $\mathds{1}_{\text{matched}}$ is $1$ if the trigger belongs to this sentence and $0$ if they are mismatched:
 {
 	{
 		\begin{align*}  
@@ -146,7 +144,7 @@ Thus, the joint loss we aim to optimize is $L = L_{TC} + \lambda L_{SM}$. % TODO
 
 \subsection{Trigger-Enhanced Sequence Tagging for NER}
 \label{sec:secondstage}
-Following the most common design of neural NER architecture, BLSTM-CRF~\citep{DBLP:conf/acl/MaH16}, we incorporate the entity triggers as attention queries 
+Following the most common design of neural NER architecture, BLSTM-CRF \citep{DBLP:conf/acl/MaH16}, we incorporate the entity triggers as attention queries 
 % TODO cite attention explanation in intro
 to train a trigger-enhanced sequence tagger for NER. Note that the BLSTM used in the the \texttt{TrigEncoder} and \texttt{TrigMatcher} modules is the same BLSTM we use in the \texttt{SeqTagger} to obtain $\mathbf{H}$, the matrix containing the hidden vectors of all of the tokens.
 Given a sentence $\mathbf{x}$, we use the previously trained \texttt{TrigMatcher} to compute the mean of all the trigger vectors $\hat{\mathbf{g_t}}$ associated with this sentence.
@@ -200,7 +198,7 @@ This section discusses how we collected entity triggers and empirically studies 
 \subsection{Annotating Triggers as Explanatory Supervision}
 \label{sec:trigger}
 
-\begin{figure*}[h] % Trigger 1 instead of Trigger !
+\begin{figure*}[h] % TODO: Trigger 1 instead of Trigger !
 	\centering
 % 	\hspace*{-.2in}
 	\includegraphics[width=0.9\linewidth]{LatexDiss/figures/triggers.pdf}
