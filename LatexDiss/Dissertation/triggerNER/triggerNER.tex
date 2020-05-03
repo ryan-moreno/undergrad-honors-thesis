@@ -1,4 +1,4 @@
-\chapter{Entity Trigger Phrases}
+\chapter{Entity Triggers}
 This section is adapted from the research paper I co-authored titled ``Entity Triggers: Learning with Explanations for Named Entity Recognition'' which will appear in the 2020 Association for Computational Linguistics conference.
 
 
@@ -138,14 +138,13 @@ The contrastive loss of the soft matching is defined as follows, where $\mathds{
 	}
 }  
 
-Thus, the joint loss we aim to optimize is $L = L_{TC} + \lambda L_{SM}$. % TODO define lambda
+Thus, the joint loss we aim to optimize is $L = L_{TC} + \lambda L_{SM}$.
 
 
 
 \subsection{Trigger-Enhanced Sequence Tagging for NER}
 \label{sec:secondstage}
-Following the most common design of neural NER architecture, BLSTM-CRF \citep{DBLP:conf/acl/MaH16}, we incorporate the entity triggers as attention queries 
-% TODO cite attention explanation in intro
+Following the most common design of neural NER architecture, BLSTM-CRF \citep{DBLP:conf/acl/MaH16}, we incorporate the entity triggers as attention queries (explained in Sec~\ref{sec:ourframework})
 to train a trigger-enhanced sequence tagger for NER. Note that the BLSTM used in the the \texttt{TrigEncoder} and \texttt{TrigMatcher} modules is the same BLSTM we use in the \texttt{SeqTagger} to obtain $\mathbf{H}$, the matrix containing the hidden vectors of all of the tokens.
 Given a sentence $\mathbf{x}$, we use the previously trained \texttt{TrigMatcher} to compute the mean of all the trigger vectors $\hat{\mathbf{g_t}}$ associated with this sentence.
 Following the conventional attention method~\citep{luong2015effective}, 
@@ -402,4 +401,6 @@ For example, one could combine dictionary-based distant supervision to our appro
 
 Another future direction is to develop highly interpretable NER models using a trigger-enhanced. As was shown in ~\ref{fig:casestudy}, the trigger attention scores during the inference stage can provide reasonable interpretation, meaning that they can be examined to understand ``why'' the model chose its entity predictions. %TODO clarify the use case
 
-It would also be interesting to investigate the possibility of automating entity trigger annotation by developing models to extract novel triggers or by transfereing existing entity triggers from one language to low-resource languages.
+It would also be interesting to investigate the possibility of automating entity trigger annotation by developing models to extract novel triggers or by transferring existing entity triggers from one language to low-resource languages.
+
+Finally, I would like to combine the topics of entity triggers and adversarial examples. Since entity triggers can come in a  variety of similar forms (e.g. \textit{had lunch at} versus \textit{ate  dinner  at}), I am interested in perturbing entity triggers from the training data to make the model more robust to variations on entity triggers in the test data.

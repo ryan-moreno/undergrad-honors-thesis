@@ -1,166 +1,497 @@
-\chapter{Data Augmentation}
-TODO:
-train with one augmented dataset test on another??
-
+\chapter{Generating Adversarial Data}
 \section{Background}
-\subsection{Motivation}
-Motivate with only unseen/one or more seen
+\subsection{Definitions}
+As described in Sec~\ref{sec:introadv}, An adversarial example for a neural network is an example that is created by perturbing a correctly classified example and causes the model to misclassify the  adversarial example. I explore several ways to perturb sentences such that the original entity labels remain valid. These adversarial attacks include entity-based attacks -- masking entities or switching entities -- and context-based attacks -- inserting and removing adjectives as well as replacing non-entity words with synonyms. A motivating example of an entity-based adversarial attack is seen in Fig~\ref{fig:motivatingexampleswitch}. In this attack, two \textsc{LOC} entities were switched between sentences. Despite predicting correctly on the two original sentences, the model predicted incorrectly on the adversarial sentence, classifying ``VANCOUVER'' as an \textsc{ORG} instead of a \textsc{LOC}. Fig~\ref{fig:motivatingexampleinsert} is a motivating example for a context-based attack. In this adversarial attack, two adjectives are inserted into the sentence. Although the adversarial sentence has the exact same meaning as the original sentence, the model misses a \textsc{PER} entity label in the adversarial sentence despite correctly labeling the original sentence.
 
-\subsection{Related Works}
-% include crossweigh framework
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\linewidth]{LatexDiss/figures/LOCmotivatingexample.png}
+	\caption{Motivating example of an entity-based adversarial attack. The first two sentences are from the original CoNLL03 dataset. The third sentence is the correct labeling sequence. The fourth sentence is what the model predicted.}
+	\label{fig:motivatingexampleswitch}
+\end{figure}
 
-\section{Problem Formulation}
-
-\section{Entity Swapping}
-
-\subsection{Motivation}
-
-\subsection{Proposed Framework}
-
-\subsection{Experiments}
-
-\section{Entity Masking}
-TODO:
--- motivation is considering context
--- humans ability to label? Should test that to see if valid adversarial data
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.95\linewidth]{LatexDiss/figures/insertmotivatingexample.png}
+	\caption{Motivating example of a context-based adversarial attack. The first sentence is from the original CoNLL03 dataset. The second sentence is the correct labeling sequence. The third sentence is what the model predicted.}
+	\label{fig:motivatingexampleinsert}
+\end{figure}
 
 
-TODO: see if triggerNER does significantly better on masked  data??
+
+
+As described in Sec~\ref{sec:ourframework}, I use a BLSTM-CRF neural NER model throughout these experiments. I use CoNLL03 as the dataset for my experiments due to its pervasiveness throughout NER literature and its simplistic structure, having only four entity categories.
 
 \subsection{Motivation}
+An important question when evaluating a NER model is how well it will work in a real-world scenario. Because training, test, and dev data are usually collected in the same manner, the test data may be over-familiar to the NER model, causing the model to perform better on the test data than it might have on a completely different corpus during a real-world application. 
 
-\subsection{Proposed Framework}
+One cause of this discrepancy is that models rely heavily on memorizing named entities, meaning that they have difficulty generalizing to unseen entities. This memorization is evidenced in Table~\ref{tab:seenvsunseen} and Fig~\ref{fig:seenvsunseen}, which show that our baseline model performs significantly better given sentences with previously seen entities rather than sentences with only new entities. To test this, I split the CoNLL03 test data into two subsets, one having all of the sentences containing one or more entity from the training data, and the other having all of the sentences with only unseen entities.
 
-\subsection{Experiments}
-
-
-
-\subsection{Results}
-% Thought I could use this for calculations in the table, but couldn't get it to work
-\ADD{0}{95.92}\origdevprec
-\ADD{0}{95.66}\origdevrecall
-\ADD{0}{95.79}\origdevf
-\ADD{0}{92.28}\origtestprec
-\ADD{0}{92.12}\origtestrecall
-\ADD{0}{92.20}\origtestf
-\begin{table}[t]
+ \begin{table}[h]
     \centering
     \begin{singlespace}
-    \scalebox{0.7} {
-    \begin{tabular}{@{} R{0.4\textwidth}@{\hskip .6in} c c c c @{}}
+    \scalebox{.7} {
+    \begin{tabular}{@{} R{0.3\textwidth}@{\hskip .6in} c c c | c c c @{}}
 \toprule   \toprule
-        & \multicolumn{1}{C{0.15\textwidth}}{\small{\textbf{Augmented dev data}}}
-        & \multicolumn{1}{C{0.25\textwidth}}{\small{\textbf{Change from original dev data}}}
-        & \multicolumn{1}{C{0.15\textwidth}}{\small{\textbf{Augmented test data}}}
-        & \multicolumn{1}{C{0.25\textwidth}}{\small{\textbf{Change from original test data}}} \\ \toprule
+        & \multicolumn{3}{C{0.3\textwidth}}{\small{\textbf{Performance on dev data}}}
+        & \multicolumn{3}{C{0.3\textwidth}}{\small{\textbf{Performance on test data}}} \\
 
-
-        \small{\textbf{Original data}} &&&&                       \\\midrule
-            \textit{Precision}  & \origdevprec & - & \origtestprec & -   \\ 
-            \textit{Recall}     & \origdevrecall & - & \origtestrecall & -   \\ 
-            \textit{F1}         & \origdevf & - & \origtestf & -   \\\bottomrule
+        \small{\textbf{Subset of unlabeled data}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} \\
+\toprule
+        \small{All sentences}
+            & 94.86 & 94.5 & 94.68
+            & 91.03 & 90.91 & 90.97 \\
+        \small{One or more seen ents}
+            & 96.93 & 96.84 & 96.88 &
+            94.24 & 94.13 & 94.18 \\
+        \small{Only unseen ents}
+            & 90.17 & 88.82 & 89.49 & 
+            87.66 & 85.86 & 86.75 \\
             
-        \small{\textbf{One or more seen ents}} &&&&     \\\midrule
-            \textit{Precision}  & 97.38 & +1.46 & 94.67 & +2.39   \\ 
-            \textit{Recall}     & 97.27 & +1.61 & 94.62 & +2.50   \\ 
-            \textit{F1}         & 97.32 & +1.53 & 94.65 & +2.45   \\\bottomrule
-
-        \small{\textbf{Only unseen ents}} &&&&      \\\midrule
-            \textit{Precision}  & 92.66 & -3.26 & 90.07 & -2.21   \\ 
-            \textit{Recall}     & 91.70 & -3.96 & 88.18 & -3.94   \\ 
-            \textit{F1}         & 92.18 & -3.61 & 89.12 & -3.08   \\\bottomrule
-        
-        \small{\textbf{All ents fully masked}} &&&&          \\\midrule
-            \textit{Precision}  & 62.69 & -33.23 & 63.74 & -28.54   \\ 
-            \textit{Recall}     & 60.23 & -35.43 & 60.11 & -32.01   \\ 
-            \textit{F1}         & 61.44 & -34.35 & 61.87 & -30.33   \\\bottomrule
-            
-        \small{\textbf{All ents half masked}} &&&&               \\\midrule
-            \textit{Precision}  & 67.30 & -28.62 & 67.39 & -24.89   \\ 
-            \textit{Recall}     & 65.28 & -30.38 & 64.50 & -27.62   \\ 
-            \textit{F1}         & 66.27 & -29.52 & 65.91 & -26.29   \\\bottomrule
-        
-        \small{\textbf{All ents masked retain vowels}} &&&&     \\\midrule
-            \textit{Precision}  & 65.18 & -30.74 & 64.36 & -27.92   \\ 
-            \textit{Recall}     & 63.04 & -32.62 & 62.00 & -30.12   \\ 
-            \textit{F1}         & 64.09 & -31.70 & 63.16 & -29.04   \\\bottomrule
-            
-        \small{\textbf{One ent half masked}} &&&&                        \\\midrule
-            \textit{Precision}  & 89.22 & -6.70 & 86.81 & -5.47   \\ 
-            \textit{Recall}     & 88.36 & -7.30 & 85.48 & -6.64   \\ 
-            \textit{F1}         & 88.79 & -7.00 & 86.14 & -6.06   \\\bottomrule
-            
-        \small{\textbf{Remove influential non-entity adjectives (AllenNLP)}} &&&&                        \\\midrule
-            \textit{Precision}  & 96.23 & +0.31 & 93.53 & +1.07   \\ 
-            \textit{Recall}     & 95.91 & +0.25 & 93.72 & +1.60   \\ 
-            \textit{F1}         & 96.07 & +0.28 & 93.63 & +1.43   \\\bottomrule
-            
-        \small{\textbf{Insert adjectives before influential nouns (AllenNLP)}} &&&&                        \\\midrule
-            \textit{Precision}  & 95.81 & -0.11 & 93.10 & +0.82   \\ 
-            \textit{Recall}     & 95.93 & +0.27 & 93.49 & +1.37   \\ 
-            \textit{F1}         & 95.87 & +0.08 & 93.29 & +1.09   \\\bottomrule
-            
-        \small{\textbf{Replace influential non-entities with synonyms (AllenNLP)}} &&&&     \\\midrule
-            \textit{Precision}  & 96.28 & +0.36 & 93.46 & +1.18   \\ 
-            \textit{Recall}     & 95.86 & +0.20 & 93.34 & +1.22   \\ 
-            \textit{F1}         & 96.07 & +0.28 & 93.40 & +1.20   \\\bottomrule
-            
-        \small{\textbf{One ent fully masked}} &&&&                        \\\midrule
-            \textit{Precision}  & 88.36 & -7.56 & 85.94 & -6.34   \\ 
-            \textit{Recall}     & 87.10 & -8.56 & 84.40 & -7.72   \\ 
-            \textit{F1}         & 87.73 & -8.06 & 85.16 & -7.04   \\\bottomrule
-            
-        \small{\textbf{One ent masked retain vowels}} &&&&    \\\midrule
-            \textit{Precision}  & 88.53 & -7.39 & 86.07 & -6.21   \\ 
-            \textit{Recall}     & 87.36 & -8.30 & 84.79 & -7.33   \\ 
-            \textit{F1}         & 87.94 & -7.85 & 85.42 & -6.78   \\\bottomrule
-            
-        \small{\textbf{Switched entities of the same type}} &&&&    \\\midrule
-            \textit{Precision}  & 95.22 & -0.70 & 92.24 & -0.04   \\ 
-            \textit{Recall}     & 94.72 & -0.94 & 91.58 & -0.54   \\ 
-            \textit{F1}         & 94.97 & -0.82 & 91.91 & -0.29   \\\bottomrule
-
-        \small{\textbf{Replace random non-entities with antonyms}} &&&&   \\\midrule
-            \textit{Precision}  & 94.72 & -1.20 & 91.23 & -1.05   \\ 
-            \textit{Recall}     & 94.22 & -1.44 & 90.57 & -1.55   \\ 
-            \textit{F1}         & 94.47 & -1.32 & 90.90 & -1.30   \\\bottomrule
-            
-        \small{\textbf{Replace random non-entities with synonyms}} &&&&     \\\midrule
-            \textit{Precision}  & 94.69 & -1.23 & 91.69 & -0.59   \\ 
-            \textit{Recall}     & 94.01 & -1.65 & 90.82 & -1.30   \\ 
-            \textit{F1}         & 94.35 & -1.44 & 91.25 & -0.95   \\\bottomrule
-
-        \small{\textbf{Remove adjectives before entities}} &&&&       \\\midrule
-            \textit{Precision}  & 98.51 & +2.59 & 87.50 & -4.78   \\ 
-            \textit{Recall}     & 95.65 & -0.01 & 87.50 & -4.62   \\ 
-            \textit{F1}         & 97.06 & +1.27 & 87.50 & -4.70   \\\bottomrule % TODO curious why dev went up and test down
-            % TODO: remove before entities?
-        \small{\textbf{Remove adjectives before random non-entities}} &&&&     \\\midrule
-            \textit{Precision}  & 94.95 & -0.97 & 91.99 & -0.29   \\ 
-            \textit{Recall}     & 94.48 & -1.18 & 91.56 & -0.56   \\ 
-            \textit{F1}         & 94.71 & -1.08 & 91.77 & -0.43   \\\bottomrule
-            % TODO remove before entities?
-        \small{\textbf{Insert adjectives before entities}} &&&&        \\\midrule
-            \textit{Precision}  & 94.64 & -1.28 & 89.71 & -2.57   \\ 
-            \textit{Recall}     & 91.38 & -4.28 & 98.39 & +6.27   \\ 
-            \textit{F1}         & 92.98 & -2.81 & 93.85 & +1.65   \\\bottomrule
-            
-        \small{\textbf{Insert adjectives before random non-entities}} &&&&       \\\midrule
-            \textit{Precision}  & 94.57 & -1.35 & 91.46 & -0.82   \\ 
-            \textit{Recall}     & 94.71 & -0.95 & 91.12 & -1.00   \\ 
-            \textit{F1}         & 94.64 & -1.15 & 91.29 & -0.91   \\\bottomrule
-
-        \hline
+\hline
     \end{tabular}
     }
     \end{singlespace}
-    \caption{Results from making predictions on adversarial data using a BLSTM-CRF model~\citep{DBLP:conf/acl/MaH16} trained on the original CoNLL03~\citep{conll} dataset.}
-    \label{tab:adverdata}
-\end{table} %TODO: put in data from new trials
+    \caption{Comparison of the our baseline model's performance on the standard CoNLL03 test data, the subset of the test data with at least one entity from the training data, and the subset of the test data with only unseen entities.}
+    \label{tab:seenvsunseen}
+\end{table}
 
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/seenvsunseen.png}
+	\caption{Comparison of the our baseline model's performance on the standard CoNLL03 test data, the subset of the test data with at least one entity from the training data, and the subset of the test data with only unseen entities.}
+	\label{fig:seenvsunseen}
+\end{figure}
+
+In order to test a model's dependence on known entities, I develop adversarial sentences in which the entities are masked with random letters, and I develop adversarial sentences in which the entities are swapped between sentences.
+
+Another reason that a NER model might perform worse on a new dataset is that the writing style is different  from the training set. Because NER models are generally trained and tested on data from the same corpus, their results can be overconfident in their ability to label new sentences. In order to test whether the model is overfitted to the writing style of the dataset, I develop adversarial sentences in which non-entities are manipulated. In particular, I remove adjectives, insert adjectives, and replace words with synonyms.
+
+The main motivation for this work is developing schemes to create adversarial data augmented so that state-of-the-art models can be more accurately evaluated. An accurate evaluation will allow researchers to better understand under what circumstances it is safe to deploy state-of-the-art NER models. Additionally, these adversarial examples can shed light on the models' shortcomings, pointing future research in a productive direction. A secondary motivation for this work is using adversarial data to benefit the models. I investigate the effectiveness of adversarial training -- training the models on adversarial training examples -- to develop more robust models.
 
 
+\section{Adversarial Attack Experiments}
+In this section, I describe the different types of adversarial attacks I experiment with and examine their effectiveness. For each attack type, I develop a script to augments an inputted dataset in an adversarial manner. For example, the entity masking script takes a standard dataset as input and returns the same dataset with each entity replaced by a random string of characters. I run these augmentation scripts on the CoNLL03 to produce augmented dev and test datasets. I then train a NER model on the original CoNLL03 training and dev set and test its ability to correctly label the augmented dev and test datasets. The results on the augmented test datasets are particularly meaningful because the test set is not used anywhere in the training of the model, so its sentences are completely new to the NER model. I find that our baseline NER model performs worse on these adversarial datasets than on the original CoNLL03 dev and test set, evidencing the success of my adversarial attacks in demonstrating a lack of robustness in state-of-the-art NER models.
+
+\subsection{Entity-based attacks}
+\subsubsection{Full Entity Masking}
+The most straightforward approach I took was fully masking every entity in a given sentence. To form a mask, I replaced each letter in the entity with a random letter with the same case (to retain the same capitalization). Any non-alphabetic characters (e.g. hyphens or digits) were left the same. 
+
+Masking entities drastically affected the model's performance, causing the model to achieve an F1 score of 61.66\% compared to 90.97\% on the original test data. In fact, this attack may perform too well, changing the sentence to an extent that would make labeling it too difficult even for humans. For example, one of the sentences in the entity-swapped data reads \textit{``Kelyta feedlot cattle roundup -- RZIJ.''}. This corresponds to the original sentence \textit{``Kansis feedlot cattle roundup -- USDA.''} In this example, even as a human we need the entity \textit{USDA} itself to understand the final word as an organization.
+
+\subsubsection{Single-Entity Masking}
+In order to address the problem of over-masking, I propose several strategies. First, I only mask one entity in a sentence. Often, when trying to label a given entity in a sentence, other nearby entities help to provide context. The single-entity masking approach takes allows for the context of other entities. As shown in Table~\ref{tab:entityattacksresults} and Fig~\ref{fig:entityattacksresults}, masking a single entity per sentence still successfully reduces the model's performance, while reducing it to a more realistic extent, from a 90.97\% F1 score to 84.63\%
+
+Within the two categories of single-entity masking and full entity masking, I test three different masking approaches. The first method is fully masking every letter as described above.
+
+\subsubsection{Half Masking}
+ My second approach is half masking, in which I only mask every other letter in an entity. As with full masking, I retain casing and special characters. For example, the original sentence \textit{``SOCCER - JAPAN GETS LUCKY WIN, CHINA IN SUPRISE DEFEAT.''} is masked to \textit{``SOCCER - JPPZN GETS LUCKY WIN, CKIKA IN SUPRISE DEFEAT.''}. As a human, I find this half masked sentence is easier to label than its fully masked counterpart \textit{``SOCCER - LNQUY GETS LUCKY WIN, INNXM IN SUPRISE DEFEAT.''} As shown in Table~\ref{tab:entityattacksresults} and Fig~\ref{fig:entityattacksresults}, partial masking allows the model to perform better than full masking, although it only makes a small difference.
+ 
+ \subsubsection{Masking with Retained Vowels}
+ My final approach to masking is to mask the entire word, but only replace vowels with vowels and consonants with consonants. I came up with this approach in the hopes that the vowel/consonant pattern would retain enough morphological structure to help the model decipher the proper labels. However, I was surprised to find that there was almost no difference between the model's performance on fully masked sentences and sentences masked with the vowels retained.
+ 
+ \subsubsection{Entity Switching}
+ Along with masking entities, I created adversarial sentences by switching entities between sentences. Specifically, for every pair of entities of the same type in the corpus, I created two new sentences with the entities switched. That is, given sentence $m = (m_{ne}, i)$ with non-entities $m_{ne}$ and entity $i$ and sentence $n = (n_{ne}, j)$ with non-entities $n_{ne}$ and entity $i$, I produce two new sentences $m' = (m_{ne}, j)$ and $n' = (n_{ne}, i)$. The goal of this attack is to test if the model is memorizing the context for specific entities rather than the context for entity types. For example, the \textsc{PER} entity \textit{Michael Phelps} might often be associated with words about swimming. If we switch \textit{Michael Phelps} and \textit{Vin Diesel}, putting Michael Phelps in a sentence about acting, can the model still recognize Michael Phelps as a \textsc{PER} entity? As can be seen in Table~\ref{tab:entityattacksresults} and Fig~\ref{fig:entityattacksresults}, entity switching had no significant effect on model performance.
+ 
+ \subsubsection{Results of entity-based adversarial attacks}
+  The results in Table~\ref{tab:entityattacksresults} and Fig~\ref{fig:entityattacksresults} demonstrate the effectiveness of entity masking in attacking our NER model, suggesting that model relies heavily on entity memorization. The fact that entity switching was not an effective strategy suggests that the NER model does not focus on the context of specific entities. In order to validate these attacks, we will need to perform a human study to ensure that the generated sentences can still be labeled by humans. In this regard, it is likely that the entity masking attacks using only one entity are more realistic.
+ 
+ \begin{table}[h]
+    \centering
+    \begin{singlespace}
+    \scalebox{.7} {
+    \begin{tabular}{@{} R{0.4\textwidth}@{\hskip .6in} c c c | c c c @{}}
+\toprule   \toprule
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on dev data}}}
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on test data}}} \\
+
+        \small{\textbf{Adversarial Technique}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} \\
+\toprule
+        \small{Original data}
+            & 94.86 & 94.50 & 94.68
+            & 91.03 & 90.91 & 90.97 \\
+\midrule
+        \small{Entity Switching}
+            & 93.99 & 93.62 & 93.81 
+            & 91.37 & 90.47 & 90.92 \\
+\midrule
+        \small{All ents fully masked}
+            & 62.89 & 58.60 & 60.67 
+            & 63.94 & 59.54 & 61.66 \\
+        \small{All ents half masked}
+            & 65.26 & 61.76 & 63.46 
+            & 66.16 & 62.20 & 64.12 \\
+        \small{All ents masked, retain vowels}
+            & 62.82 & 59.32 & 61.02 
+            & 64.68 & 60.82 & 62.69 \\
+\midrule
+        \small{One ent fully masked}
+            & 87.46 & 85.65 & 86.55 
+            & 85.68 & 83.60 & 84.63 \\
+        \small{One ent half masked} 
+            & 88.01 & 86.58 & 87.29
+            & 86.12 & 84.23 & 85.16 \\
+        \small{One ent masked, retain vowels}
+            & 87.54 & 86.04 & 86.79
+            & 85.62 & 83.77 & 84.68 \\
+            
+\hline
+    \end{tabular}
+    }
+    \end{singlespace}
+    \caption{Comparison of our baseline model's performance on the standard CoNLL03 datasets with its performance on entity-based adversarial attacks.}
+    \label{tab:entityattacksresults}
+\end{table}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/entityattacks.png}
+	\caption{Comparison of our baseline model's performance on the standard CoNLL03 test data with its performance on entity-based adversarial attacks.}
+	\label{fig:entityattacksresults}
+\end{figure}
+ 
+ 
+\subsection{Context-based attacks}
+In this section I focus on context-based attacks, adding and removing non-entity adjectives as well as replacing non-entities with synonyms. When choosing related words to insert or replace with, I mimic the existing casing pattern (all lowercase, all uppercase, or capitalized) in order to retain continuity with the rest of the sentence. Further, in order to decrease the chance of inserting a named entity, I don't allow related words that were capitalized before my formatting.
+
+Within these context-based attacks we have several subcategories based on two variables: how we choose which non-entity words to attack and how we select related words (necessary for inserting adjectives or replacing words with synonyms). Intuitively, we would like to attack the most influential words since our goal is to create a sentence that the model can no longer label properly. I investigate three different ways of choosing the most influential words: random selection, model differentiation, and cooccurrence matrices. I also use two different publicly-available platforms for selecting related words.
+
+\subsubsection{Selecting related words: ConceptNet}
+The first technique for selecting related words that I explored is ConceptNet, a publicly-available semantic network, created to provide computers an understanding of the meaning of words \citep{conceptnet}. ConceptNet contains a massive dictionary of related words with a variety of relation types in many languages. For example, once ConceptNet is parsed to only show English words with relations relevant to my work, \textit{abandon synonym quit $1.0$} indicates that ``quit'' is a synonym for ``abandon'' with a confidence score of $1.0$. I also use the relation \textit{hasproperty} to find adjectives. For example, \textit{apple hasproperty red 9.592} indicates that ``red'' is an adjective for apple. ConceptNet's \textit{hasproperty} relation also includes non-adjective phrases (such as \textit{antlers hasproperty shaped\_like\_trees}), so I only use single-word properties.
+
+A major downside to using ConceptNet for word manipulation is that it does not take the sentence context into account when selecting related words. As an example, the original sentence \textit{``The presidential contest put the stock market in the twilight zone''} was changed to \textit{``The presidential contest put the broth market in the twilight zone''}. In this case, ``stock'' was changed to ``broth'' because they are synonyms in the context of soups. However, in the context of this sentence, this substitution does not make sense.
+
+\subsubsection{Selecting related words: BERT}
+\label{sec:BERT}
+In order to use the full sentence as context when deciding on a replacement word, I used BERT's masked token prediction capability \citep{BERT}. BERT (Bidirectional Encoder Representations from Transformers) is an NLP model that can be fine-tuned for specific tasks, such as NER or question answering. In order to train a deep representation from unlabeled text, BERT is pre-trained by masking tokens in the unlabeled text and learning to predict those masked tokens \citep{BERT}. 
+
+In order to get a related word, I mask the word I want a synonym of or insert a mask before the noun I want to add an adjective to. I then use BERT's masked token prediction functionality to generate a list of possible words for the mask. For example, if I wanted a synonym for ``stock'' in \textit{``The presidential contest put the stock market in the twilight zone.''} I would input the sentence \textit{``The presidential contest put the [MASK] market in the twilight zone.''}. In this example, BERT suggests the words ``entire'', ``local'', ``fish'', ``stock'', and ``black'', giving a corresponding confidence score for each. Of course, I cannot use ``stock'' because that was the original world. In contrast to ConceptNet, which suggested ``broth,'' BERT shows an understanding of the sentence's context.
+
+Currently, I am using the related word with the highest confidence rating, with the intuition that this is the most likely to form a valid sentence. However, my next direction will be to use lower-ranking words. My hypothesis is that these lower-ranking words will be more effective as adversarial attacks because they will be less common words.
+
+\subsubsection{Results of context-based attacks: related word selection}
+As can be seen in Table~\ref{tab:relatedwords} and Fig~\ref{fig:relatedwords}, BERT's adversarial attacks tend to be more effective across a variety of experiments. The specifics of these experiments are explained in Sec~\ref{sec:randomselection} and Sec~\ref{sec:allennlpinterpret}. Additionally, BERT takes into account the context of a sentence, as discussed in Sec~\ref{sec:BERT}. For this reason, for the remainder of the experiments I only present results using BERT to select related words unless otherwise specified.
+
+\begin{table}[h]
+    \centering
+    \begin{singlespace}
+    \scalebox{.7} {
+    \begin{tabular}{@{} R{0.6\textwidth}@{\hskip .6in} c c c | c c c @{}}
+\toprule   \toprule
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on dev data}}}
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on test data}}} \\
+
+        \small{\textbf{Adversarial Technique}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} \\
+\toprule
+        \small{Original data}
+            & 94.86 & 94.50 & 94.68
+            & 91.03 & 90.91 & 90.97 \\
+\midrule
+        \small{Insert adjectives randomly (BERT)}
+            & 88.46 & 82.63 & 85.45 
+            & 86.03 & 85.4 & 85.71 \\
+        \small{Insert adjectives randomly (ConceptNet)}
+            & 93.10 & 85.71 & 89.26 
+            & 87.10 & 90.00 & 88.52 \\
+\midrule
+        \small{Replace words randomly (BERT)} 
+            & 93.35 & 92.79 & 93.07 
+            & 90.30 & 89.33 & 89.81 \\
+        \small{Replace words randomly (ConceptNet)} 
+            & 95.44 & 94.96 & 95.20
+            & 92.67 & 91.79 & 92.23 \\
+\midrule
+        \small{Insert adjectives using AllenNLP Interpret (BERT)}
+            & 94.49 & 94.61 & 94.55
+            & 90.88 & 90.79 & 90.83 \\
+        \small{Insert adjectives using AllenNLP Interpret (ConceptNet)}
+            & 93.71 & 94.29 & 94.00 
+            & 90.99 & 90.76 & 90.87\\
+\midrule
+        \small{Replace words using AllenNLP Interpret (BERT)} 
+            & 95.35 & 95.18 & 95.26
+            & 92.89 & 92.12 & 92.50 \\
+        \small{Replace words using AllenNLP Interpret (ConceptNet)} 
+            & 95.91 & 95.80 & 95.86 
+            & 93.28 & 92.99 & 93.13 \\
+\hline
+    \end{tabular}
+    }
+    \end{singlespace}
+    \caption{Comparison of of BERT and ConceptNet for selecting related words. This experiment was performed using our baseline model and the CoNLL03 dataset. In this case, randomly chosen words means random words before entities.}
+    \label{tab:relatedwords}
+\end{table}
+ 
+ \begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/relatedwords.png}
+	\caption{Comparison of of BERT and ConceptNet for selecting related words. This experiment was performed using our baseline model and the CoNLL03 test set.}
+	\label{fig:relatedwords}
+\end{figure}
 
 
-\section{Conclusion}
+\subsubsection{Influential word selection: random}
+\label{sec:randomselection}
+The baseline for selecting influential words is to randomly select them. In order to investigate whether words closer to entities are more influential, I use two subcategories of random selection: manipulating words immediately preceding entities and manipulating words immediately preceding non-entities. As can be seen in Tab~\ref{tab:manipentsvsnonents} and Fig~\ref{fig:manipentsvsnonents}, the context-based adversarial attacks are more effective when words adjacent to entities are manipulated. 
+
+\begin{table}[h]
+    \centering
+    \begin{singlespace}
+    \scalebox{.7} {
+    \begin{tabular}{@{} R{0.4\textwidth}@{\hskip .6in} c c c | c c c @{}}
+\toprule   \toprule
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on dev data}}}
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on test data}}} \\
+
+        \small{\textbf{Adversarial Technique}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} \\
+\toprule
+        \small{Original data}
+            & 94.86 & 94.50 & 94.68
+            & 91.03 & 90.91 & 90.97 \\
+\midrule
+        \small{Remove adjectives before ents}
+            & 89.47 & 82.93 & 86.08 
+            & 80.65 & 78.12 & 79.37 \\
+        \small{Remove adjectives before non-ents}
+            & 93.54 & 93.16 & 93.35 
+            & 89.48 & 88.89 & 89.18 \\
+\midrule
+        \small{Insert adjectives before ents}
+            & 88.46 & 82.63 & 85.45 
+            & 86.03 & 85.4 & 85.71 \\
+        \small{Insert adjectives before non-ents}
+            & 93.29 & 93.26 & 93.27 
+            & 88.48 & 88.48 & 88.48 \\
+\midrule
+        \small{Replace words before ents} 
+            & 93.35 & 92.79 & 93.07 
+            & 90.30 & 89.33 & 89.81 \\
+        \small{Replace words before non-ents} 
+            & 94.41 & 94.16 & 94.28 
+            & 91.22 & 91.31 & 91.26 \\
+\hline
+    \end{tabular}
+    }
+    \end{singlespace}
+    \caption{Comparison of manipulating randomly-chosen words before entities versus before non-entities in context-based attacks. This experiment was performed using our baseline model and the CoNLL03 dataset.}
+    \label{tab:manipentsvsnonents}
+\end{table}
+ 
+ \begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/manipentsvsnonents.png}
+	\caption{Comparison of manipulating randomly-chosen words before entities versus before non-entities in context-based attacks. This experiment was performed using our baseline model and the CoNLL03 test set.}
+	\label{fig:manipentsvsnonents}
+\end{figure}
+ 
+\subsubsection{Influential word selection: AllenNLP Interpret}
+\label{allennlpinterpret}
+The first non-random way for selecting influential words that I investigate is using AllenNLP Interpret~\citep{allennlpinterpret}. AllenNLP Interpret can be applied to any differentiable NLP model. By differentiating the model and finding the gradient of the loss (with respect to the model's actual output) for each token, AllenNLP Interpret determines which input word is the most influential for the model's prediction~\citep{allennlpinterpret}. I use AllenNLP Interpret to select the top $k$ most influential words, which I manipulate through removal, insertion, and replacement.
+
+The benefit of AllenNLP Interpret is that it takes a model-specific approach to quantitatively and definitively selecting the most influential words. However, the downside is that it requires a white-box approach to adversarial attacks, meaning that in order to develop the adversarial examples, we need to know the structure of the model at hand. Additionally, the  model has to be end-to-end differentiable so that we can calculate the gradient of the loss.
+
+\subsubsection{Influential word selection: Cooccurrence Matrix}
+% note why we compute influence on the training data only, ignoring dev and test
+A cooccurrence matrix is an approach to finding influential words that is model agnostic. In this approach, I create a dictionary with every non-entity word in the corpus. I considered ignoring stop words (words that are commonly filtered out in NLP such as ``the'', and ``and''). However, I recognized that some stop words might have an association with a particular entity type. For example, ``in'' and ``at'' are highly associated with \textsc{LOC}. For each word in the corpus, I record the number of times that it appears in the same sentence as an entity of each type. For example, the sentence ``\textit{Costco} has taken off in \textit{Canada}'' would increment the counters for each entry in the set  \{(has, \textsc{ORG}), (taken, \textsc{ORG}), (off, \textsc{ORG}), (in, \textsc{ORG}), (has, \textsc{LOC}), (taken, \textsc{LOC}), (off, \textsc{LOC}), (in, \textsc{LOC})\}. 
+
+In order to determine a word's influence on the model's prediction for a sentence, I sum the word's influence over all of the sentence's entities. To determine the influence of each entity-word combination, two values must be taken into account. First we must consider how many times the word and entity type have been seen together in the same sentence throughout the corpus. This is exactly the information stored in the cooccurrence matrix. This value is important because it is likely that the model has learned which words are most often associated with a given entity type. For example, the word ``said'' often appears in sentences with a \textsc{PER} entity. In fact, according to the cooccurrence matrix I developed on the CoNLL03 training data, ``said'' is the word most frequently associated with \textsc{PER} besides ``the.'' 
+
+However, neither ``said'' nor ``the'' is the word with the highest influence rating. This is because there is a second value to consider -- the relative frequency of a word. If we strictly consider the frequency with which a word and entity type appear together, ``the'' would rank among the most influential words for every entity type. The relative frequency is the ratio of the frequency with which a word is associated with a specific entity type compared to the frequency of the word throughout the entire corpus. This value gives an idea of how influential a word is to a specific entity type rather than merely indicating how prevalent that word is throughout the corpus. However, this ratio alone is not enough to accurately represent a word's influence because extremely infrequent words would end up with a high ratio despite their lack of influence. For example, according to the cooccurrence matrix I developed on the CoNLL03 training data, the pair ``pavilion'', \textsc{PER} has a perfect relative frequency of 1.0. However, this is because the word pavilion only appears once in the corpus. In order to accurately represent a word's influence on an entity's type, I combine these two indicators such that the influence of a specific word/entity type pair is calculated as total associations $\times$ relative frequency.
+
+\subsubsection{Results of context-based attacks: influential word selection}
+As seen in Table~\ref{tab:influentialwords} and Fig~\ref{fig:influentialwords}, random selection of words is the most effective way to create adversarial attacks in this context-based setting and AllenNLP Interpret is the least effective. This result was surprising considering that AllenNLP Interpret leverages knowledge of the structure of the NER model to determine influential words. My next step is to further investigate these results, looking through the specific successful attacks to see why this might be.
+
+\begin{table}[h]
+    \centering
+    \begin{singlespace}
+    \scalebox{.7} {
+    \begin{tabular}{@{} R{0.5\textwidth}@{\hskip .6in} c c c | c c c @{}}
+\toprule   \toprule
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on dev data}}}
+        & \multicolumn{3}{L{0.3\textwidth}}{\small{\textbf{Performance on test data}}} \\
+
+        \small{\textbf{Adversarial Technique}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} \\
+\toprule
+        \small{Original data}
+            & 94.86 & 94.50 & 94.68
+            & 91.03 & 90.91 & 90.97 \\
+\midrule
+        \small{Remove adjectives randomly before ents}
+            & 89.47 & 82.93 & 86.08 
+            & 80.65 & 78.12 & 79.37 \\
+        \small{Remove adjectives using AllenNLP Interpret}
+            & 94.39 & 93.97 & 94.18
+            & 91.34 & 90.93 & 91.13 \\
+        \small{Remove adjectives using cooccurrence matrix}
+            & 93.54 & 93.09 & 93.31
+            & 89.48 & 88.9 & 89.19 \\
+\midrule
+        \small{Insert adjectives randomly before ents}
+            & 88.46 & 82.63 & 85.45 
+            & 86.03 & 85.4 & 85.71 \\
+        \small{Insert adjectives using AllenNLP Interpret}
+            & 94.49 & 94.61 & 94.55
+            & 90.88 & 90.79 & 90.83 \\
+        \small{Insert adjectives using cooccurrence matrix}
+            & 92.96 & 93.01 & 92.99
+            & 88.52 & 88.55 & 88.54 \\
+\midrule
+        \small{Replace words randomly before ents}
+            & 93.35 & 92.79 & 93.07 
+            & 90.30 & 89.33 & 89.81 \\
+        \small{Replace words using AllenNLP Interpret}
+            & 95.35 & 95.18 & 95.26
+            & 92.89 & 92.12 & 92.50 \\
+        \small{Replace words using cooccurrence matrix}
+            & 94.97 & 94.55 & 94.76
+            & 92.14 & 91.76 & 91.95 \\
+\hline
+    \end{tabular}
+    }
+    \end{singlespace}
+    \caption{Comparison of techniques for choosing influential words for context-based attacks. This experiment was performed using our baseline model and the CoNLL03 dataset. Related words were chosen using BERT.}
+    \label{tab:influentialwords}
+\end{table}
+ 
+ \begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/influentialwords.png}
+	\caption{Comparison of techniques for choosing influential words for context-based attacks. This experiment was performed using our baseline model and the CoNLL03 test set. Related words were chosen using BERT. In this case, random selections means randomly selecting words before entities.}
+	\label{fig:influentialwords}
+\end{figure}
+
+\section{Adversarial Training Experiments}
+Although the main purpose these adversarial attacks was to \textit{test} the robustness of a model, they can also be used to \textit{improve} the robustness of the model to these types of attacks. In this section, I investigate the efficacy of adversarial training using the adversarial augmentation techniques above. 
+
+\subsection{Technique}
+The first step to adversarial training is to use the same augmentation scripts as were used for adversarial attacks on the training and dev data. For each type of adversarial attack, I make an augmented training file that includes the original training data as well as the augmented training data. I make an augmented dev file using the same technique. I then train a new NER model (of the same BLSTM-CRF structure as our baseline model) on this augmented training data. Finally, I test the augmented model's performance on the adversarial test dataset as well as the original CoNLL03 test dataset. 
+
+\subsection{Results}
+As seen in Table~\ref{tab:advtraining} and Fig~\ref{fig:advtraining}, the augmented NER models' performance on the adversarial test dataset tends to be higher than the original baseline model, demonstrating the efficacy of adversarial training. Further, as seen in Table~\ref{tab:advtraining} and Fig~\ref{fig:augmodelsorigdata}, this improvement comes without a significant decrease in performance on the original test dataset, evidencing that adversarial training increases the model's robustness without harming its performance on standard data. For brevity, I only present the adversarial training results on the most successful entity-based and context-based attacks. However, the other augmentation techniques produce a similar pattern.
+
+\begin{table}[h]
+    \centering
+    \begin{singlespace}
+    \scalebox{.7} {
+    \begin{tabular}{@{} R{0.35\textwidth}@{\hskip .6in} c c c | c c c | c c c @{}}
+\toprule   \toprule
+        & \multicolumn{3}{C{0.3\textwidth}}{\small{\textbf{Original model on adversarial data}}}
+        & \multicolumn{3}{C{0.3\textwidth}}{\small{\textbf{Augmented model on adversarial data}}} 
+        & \multicolumn{3}{C{0.3\textwidth}}{\small{\textbf{Augmented model on original data}}} \\
+
+        \small{\textbf{Augmentation Type}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}}
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} 
+        & \small{\textit{Precision}}
+        & \small{\textit{Recall}}
+        & \small{\textit{F1}} \\
+\toprule
+        \small{Original model on original data}
+            & - & - & -
+            & - & - & -
+            & 91.03 & 90.91 & 90.97 \\
+\midrule
+        \small{All ents fully masked}
+            & 63.94 & 59.54 & 61.66 
+            & 76.02 & 76.49 & 76.25 
+            & 89.63 & 90.16 & 89.89 \\
+        \small{All ents half masked}
+            & 66.16 & 62.20 & 64.12 
+            & 77.56 & 77.71 & 77.63 
+            & 90.38 & 90.78 & 90.58 \\
+        \small{All ents masked, retain vowels}
+            & 64.68 & 60.82 & 62.69 
+            & 75.55 & 76.03 & 75.79 
+            & 90.37 & 91.02 & 90.69 \\
+        \small{One ent fully masked}
+            & 85.68 & 83.60 & 84.63 
+            & 88.13 & 88.19 & 88.16 
+            & 90.47 & 91.25 & 90.86 \\
+        \small{One ent half masked} 
+            & 86.12 & 84.23 & 85.16
+            & 88.60 & 88.73 & 88.66 
+            & 90.66 & 91.64 & 91.15 \\
+        \small{One ent masked, retain vowels}
+            & 85.62 & 83.77 & 84.68
+            & 88.22 & 88.06 & 88.14 
+            & 90.52 & 91.27 & 90.89 \\
+\midrule
+        \small{Remove adjectives}
+            & 80.65 & 78.12 & 79.37 
+            & 77.42 & 75.00 & 76.19 
+            & 91.36 & 90.93 & 91.14 \\
+        \small{Insert adjectives}
+            & 86.03 & 85.40 & 85.71 
+            & 88.41 & 89.05 & 88.73 
+            & 91.24 & 90.88 & 91.06 \\
+        \small{Replace words}
+            & 90.30 & 89.33 & 89.81
+            & 90.79 & 90.61 & 90.70 
+            & 90.75 & 91.18 & 90.97 \\
+\hline
+    \end{tabular}
+    }
+    \end{singlespace}
+    \caption{Comparison of the original model's performance and augmented model's performance on adversarial datasets based on the CoNLL03 dataset. Related words were chosen using BERT. Influential words are selected as random words before entities.}
+    \label{tab:advtraining}
+\end{table}
+ 
+ \begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/advtraining.png}
+	\caption{Comparison of the original model's performance and augmented model's performance on adversarial datasets based on the CoNLL03 dataset. Related words were chosen using BERT. Influential words are selected as random words before entities.}
+	\label{fig:advtraining}
+\end{figure}
+
+ \begin{figure}[h]
+	\centering
+	\includegraphics[width=0.85\linewidth]{LatexDiss/figures/augmodelsorigdata.png}
+	\caption{Comparison of the augmented models' performance and the original model's performance on the original CoNLL03 test dataset. Related words were chosen using BERT. Influential words are selected as random words before entities.}
+	\label{fig:augmodelsorigdata}
+\end{figure}
+
+\section{Future Directions}
+This is an ongoing project. One of my next steps is to deeply examine the results from context-based attacks to investigate why random selection of influential words was more effective than systematic selection. I also plan to continue developing the related word selection with BERT by using suggested words with a lower confidence score. I plan to use words with a lower confidence score in the hopes that they are more likely to fool  the baseline model because they are less common words.
+
+More generally, I plan to apply these techniques to other NER datasets. CoNLL03 is a limited dataset because it is relatively simplistic, containing only four categories of named entities. Further, the CoNLL03 dataset contains many labeling mistakes. In particular, because the dataset contains many sporting event results, there are many discrepencies between whether a country name such as ``Japan'' should be counted as an \textsc{LOC} or \textsc{ORG} in the context of a sports team.
+
+I would also like to run human experiments to ensure that the adversarial data is able to be labeled by humans. Evidence that humans can properly label the adversarial data confirm that the adversarial data is in fact valid.
+
+% could we incorporate IBP?
+% genetic algorithms as in Alzentot rather than random perturb (they got from 52\%  to 97\%)
+
