@@ -131,6 +131,8 @@ Adversarial examples are useful in part because they demonstrate the limits of s
 
 Another use of adversarial examples, the use that I focus on in this thesis, is data augmentation by adversarial training. By developing scripts to create adversarial examples, I've effectively developed scripts to take a set of labeled data and produce additional, slightly different, labeled data. I hypothesize that since the adversarial examples of our test data are able to trick our NER models, the adversarial examples must have implicit knowledge that the NER model currently lacks, knowledge which could improve the NER model if it was embedded into the training data. With this in mind, I use the same scripts for creating adversarial examples to augment the training data, creating more, slightly different, training data without additional human annotation cost. This approach --  augmenting the training data using techniques for generating adversarial test examples -- is called \textit{adversarial training}.
 My experiments show that adversarial training improves the NER models' robustness to adversarial attacks while retaining its effectiveness on the original test data sets. 
+
+An accurateevaluation will allow researchers to better understand under what circumstances it is safe todeploy state-of-the-art NER models. Additionally, these adversarial examples can shed lighton the models’ shortcomings, pointing future research in a productive direction
 }
 
 % The text of your dedication

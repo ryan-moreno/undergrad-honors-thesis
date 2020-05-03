@@ -5,9 +5,10 @@
 % 2) What is the significance of your particular topic?
 \section{Named Entity Recognition (NER)}
 \subsection{Task Definition}
+\label{sec:task}
 Named entity recognition (NER) is a fundamental information extraction task that attempts to extract entities from a given text and classify them using pre-defined categories (e.g. persons, locations, or organizations) \citep{2007Survey}. 
 
-Modern approaches to NER use machine learning, using a set of human-annotated, labeled sentences to train a model to classify new sentences. The main dataset I use in this thesis is CoNLL-2003 ~\citep{conll}. This dataset uses a Beginning-Inside-Outside (BIO) format, meaning that each word is classified as either \textsc{B-TYPE} -- the beginning of a named entity, \textsc{I-TYPE} -- any word in a named entity that is not the first, or \textsc{O} -- a non-entity. Separating \textsc{B-TYPE} and \textsc{I-TYPE} helps to distinguish entity boundaries. An example of a labeled sentence appears in Fig~\ref{fig:labeledsent}.
+Modern approaches to NER use machine learning, using a set of human-annotated, labeled sentences to train a model to classify new sentences. The main dataset I use in this thesis is CoNLL-2003 ~\citep{conll}. This dataset uses a Beginning-Inside-Outside (BIO) format, meaning that each word is classified as either \texttt{B-TYPE} -- the beginning of a named entity, \texttt{I-TYPE} -- any word in a named entity that is not the first, or \texttt{O} -- a non-entity. Separating \texttt{B-TYPE} and \texttt{I-TYPE} helps to distinguish entity boundaries. An example of a labeled sentence appears in Fig~\ref{fig:labeledsent}.
 
 \begin{figure}[h]
 	\centering
@@ -15,6 +16,11 @@ Modern approaches to NER use machine learning, using a set of human-annotated, l
 	\caption{Example of a human-annotated sentence demonstrating the BIO format.}
 	\label{fig:labeledsent}
 \end{figure}
+
+
+More formally, let $\mathbf{x}=[x^{(1)}, x^{(2)}, \cdots, x^{(n)}]$ denote a sentence in the labeled training corpus $\mathcal{D}_{L}$.
+Each labeled sentence has a NER-tag sequence $\textbf{y}=[y^{(1)}, y^{(2)}, \cdots, y^{(n)}]$, where $y^{(i)}\in \mathcal{Y}$ and  $\mathcal{Y}$ can be \{\texttt{O}, \texttt{B-PER}, \texttt{I-PER}, \texttt{B-LOC}, \texttt{I-LOC}, $\cdots$\}.
+Thus, we have $\mathcal{D}_{L}=\{(\mathbf{x_i}, \mathbf{y_i})\}$, and an unlabeled corpus $\mathcal{D}_{U}=\{\mathbf{x_i}\}$ that we want to label.
 
 In the standard setup, human-annotators are asked to annotate a collection of sentences, which are split into a training, dev, and test set. The CoNLL-2003 dataset is made up of 14,987 training sentences, 3,466 dev sentences, and 3,684 test sentences ~\citep{conll}. The modern approach to NER is using neural models. Sec~\ref{sec:neuralNER} briefly explains the training process of a neural network. During training, the neural NER model has access to each sentence in the training set and its corresponding word labels. The dev set is also used during training. However, the model doesn't directly train on the dev set, but rather uses the dev set to test the model's performance between each training stage. The model predicts labels for the sentences in the dev set, comparing its predictions to the human-annotated labels and adjusting its parameters accordingly. Finally, after the model is completely trained it makes predictions on the sentences in the test set. These predictions are compared to the human-annotated labels, producing an official evaluation of the trained model. The model's performance on the test set is expected to reflect the performance it would have on completely unlabeled sentences.
 
