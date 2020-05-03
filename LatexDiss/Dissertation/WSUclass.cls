@@ -664,7 +664,7 @@ of \MakeUppercase{\@Author} find it satisfactory and recommend that it be accept
     \begin{center}
     \providecommand\pdfbookmark[3][]{} \pdfbookmark[0]{Acknowledgments}{bm:Acknowledge}
     \vspace*{0.375in}
-    \textbf{ACKNOWLEDGMENT}\\[3\baselineskip]
+    \textbf{ACKNOWLEDGMENTS}\\[3\baselineskip]
     \end{center}
     \renewcommand{\baselinestretch}{1.66} \small\normalsize%
     \@Acknowledgments
