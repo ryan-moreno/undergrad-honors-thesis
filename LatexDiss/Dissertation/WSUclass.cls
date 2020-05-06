@@ -161,7 +161,7 @@
   \DepRep{Department Chair Name}
   \DepRepTitle{Chair}
   \Dean{Dr. Yannis Yortsos}
-  \DeanTitle{Associate Dean}
+  \DeanTitle{Dean of Viterbi}
   \HonorsAdvisor{Dr. Andrea Armani}
   \UgradCoord{Department Ugrad Coordinator }
 
@@ -486,7 +486,7 @@
     \@Author
     \vfill
     Submitted to the University of Southern California in partial fulfillment\\[\baselineskip]
-    of graduation requirements for departmental honors\\[2\baselineskip]
+    of graduation requirements for engineering honors \\[2\baselineskip]
     Viterbi School of Engineering, Computer Science\\[\baselineskip]
     \@Month~\@Year
     \vfill
@@ -582,7 +582,7 @@ of \MakeUppercase{\@Author} find it satisfactory and recommend that it be accept
     \end{center}
     \noindent
     This thesis has been reviewed by the research advisor,
-    engineering honors advisor, and department chair and has been
+    the engineering honors advisor, and the dean of the  Viterbi school of engineering and has been
     found to be satisfactory.\\[\baselineskip]
     \datebox\hfill\signaturebox{\@Advisor, Research Advisor}\\
     \datebox\hfill\signaturebox{\@HonorsAdvisor, Honors Advisor}\\
